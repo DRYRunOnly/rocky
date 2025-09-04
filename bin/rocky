@@ -1,0 +1,2 @@
+#!/usr/bin/env node
+console.log("🪨 Welcome to the Rocky CLI! Let's rock your world!");

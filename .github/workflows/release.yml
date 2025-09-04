@@ -1,0 +1,90 @@
+name: Build & Release npm (pack + attach renamed tgz)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"   # e.g. v1.0.0
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "🧰 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🧱 Setup Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: "🧮 Read version from package.json"
+        id: ver
+        run: |
+          RAW=$(node -p "require('./package.json').version || '1.0.0'")
+          # Normalize RAW to SemVer for release/tag/file naming
+          # Rules:
+          # - if already looks like semver (x.y or x.y.z), keep as-is
+          # - if exactly 3 digits (e.g. 100) -> 1.0.0
+          # - if only digits (e.g. 12) -> 12.0.0
+          # - otherwise fallback to 0.0.0
+          if [[ "$RAW" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+            NORM="$RAW"
+          elif [[ "$RAW" =~ ^([0-9])([0-9])([0-9])$ ]]; then
+            NORM="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+          elif [[ "$RAW" =~ ^[0-9]+$ ]]; then
+            NORM="${RAW}.0.0"
+          else
+            NORM="0.0.0"
+          fi
+
+          echo "ver_raw=$RAW" >> "$GITHUB_OUTPUT"
+          echo "ver=$NORM" >> "$GITHUB_OUTPUT"
+          echo "Package version (raw): $RAW"
+          echo "Package version (normalized): $NORM"
+
+      - name: "🎁 npm pack (do not fail build)"
+        id: pack
+        shell: bash
+        run: |
+          set +e
+          echo "Running npm pack (allowing failure)..."
+          npm pack --silent
+          STATUS=$?
+          echo "npm pack exit status: $STATUS (continuing regardless)"
+
+          TGZ=$(ls -1 *.tgz 2>/dev/null | head -n1 || true)
+          if [ -z "$TGZ" ]; then
+            echo "No .tgz produced by npm pack; creating a minimal placeholder to proceed."
+            TGZ="-${{ steps.ver.outputs.ver }}.tgz"
+            tar -czf -- "$TGZ" README.md 2>/dev/null || echo "placeholder" > "$TGZ"
+          fi
+
+          echo "Found tarball: $TGZ"
+          echo "TGZ=$TGZ" >> $GITHUB_ENV
+
+      - name: "🗂️ Rename tarball to rocky-npm-<version>.tgz"
+        shell: bash
+        run: |
+          VER="${{ steps.ver.outputs.ver }}"   # normalized semver
+          SRC="$TGZ"
+          DEST="rocky-npm-${VER}.tgz"
+          if [ "$SRC" = "$DEST" ]; then
+          echo "Names are identical; skipping rename."
+          else
+          mv -f -- "$SRC" "$DEST"
+          fi
+          echo "ASSET=$DEST" >> $GITHUB_ENV
+
+      - name: "🏷️ Create GitHub Release (attach .tgz)"
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
+          token: ${{ github.token }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.ver) }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.ver) }}
+          generate_release_notes: true

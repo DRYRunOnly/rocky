@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+
+# lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml 
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment files
+.env
+.npmrc
+
+# macOS system files
+.DS_Store
+
+# Build output
+coverage/
+dist/
+*.tgz
+
+# IDE directories
+.vscode/
+.idea/
