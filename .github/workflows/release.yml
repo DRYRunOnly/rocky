@@ -1,9 +1,9 @@
-name: Build & Release npm (pack + attach renamed tgz)
+name: Build & Release npm (pack + attach .tgz if present)
 
 on:
   push:
     tags:
-      - "v*.*.*"   # e.g. v1.0.0
+      - "v*.*.*"      # e.g. v1.0.0
   workflow_dispatch:
 
 permissions:
@@ -21,70 +21,62 @@ jobs:
         with:
           node-version: "20"
 
-      - name: "🧮 Read version from package.json"
-        id: ver
-        run: |
-          RAW=$(node -p "require('./package.json').version || '1.0.0'")
-          # Normalize RAW to SemVer for release/tag/file naming
-          # Rules:
-          # - if already looks like semver (x.y or x.y.z), keep as-is
-          # - if exactly 3 digits (e.g. 100) -> 1.0.0
-          # - if only digits (e.g. 12) -> 12.0.0
-          # - otherwise fallback to 0.0.0
-          if [[ "$RAW" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
-            NORM="$RAW"
-          elif [[ "$RAW" =~ ^([0-9])([0-9])([0-9])$ ]]; then
-            NORM="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
-          elif [[ "$RAW" =~ ^[0-9]+$ ]]; then
-            NORM="${RAW}.0.0"
-          else
-            NORM="0.0.0"
-          fi
-
-          echo "ver_raw=$RAW" >> "$GITHUB_OUTPUT"
-          echo "ver=$NORM" >> "$GITHUB_OUTPUT"
-          echo "Package version (raw): $RAW"
-          echo "Package version (normalized): $NORM"
-
-      - name: "🎁 npm pack (do not fail build)"
+      # Try to pack, but DO NOT fail the job if npm errors.
+      # If a .tgz exists, capture its filename; otherwise leave ASSET empty.
+      - name: "🎁 npm pack (best-effort; ignore failure)"
         id: pack
         shell: bash
         run: |
           set +e
-          echo "Running npm pack (allowing failure)..."
-          npm pack --silent
+          echo "Running npm pack (ignoring errors)..."
+          OUT_JSON="$(npm pack --json 2>/dev/null)"
           STATUS=$?
-          echo "npm pack exit status: $STATUS (continuing regardless)"
+          echo "npm pack exit status: $STATUS"
 
-          TGZ=$(ls -1 *.tgz 2>/dev/null | head -n1 || true)
-          if [ -z "$TGZ" ]; then
-            echo "No .tgz produced by npm pack; creating a minimal placeholder to proceed."
-            TGZ="-${{ steps.ver.outputs.ver }}.tgz"
-            tar -czf -- "$TGZ" README.md 2>/dev/null || echo "placeholder" > "$TGZ"
+          # Try to parse filename if JSON exists and pack succeeded
+          FILE=""
+          if [ $STATUS -eq 0 ] && [ -n "$OUT_JSON" ]; then
+            # jq may fail if OUT_JSON is not valid; ignore errors
+            FILE="$(echo "$OUT_JSON" | jq -r '.[0].filename' 2>/dev/null || true)"
           fi
 
-          echo "Found tarball: $TGZ"
-          echo "TGZ=$TGZ" >> $GITHUB_ENV
+          # Fallback: if npm printed nothing but still produced a .tgz, grab the first one
+          if [ -z "$FILE" ]; then
+            FILE="$(ls -1 *.tgz 2>/dev/null | head -n1 || true)"
+          fi
 
-      - name: "🗂️ Rename tarball to rocky-npm-<version>.tgz"
-        shell: bash
-        run: |
-          VER="${{ steps.ver.outputs.ver }}"   # normalized semver
-          SRC="$TGZ"
-          DEST="rocky-npm-${VER}.tgz"
-          if [ "$SRC" = "$DEST" ]; then
-          echo "Names are identical; skipping rename."
+          if [ -n "$FILE" ] && [ -f "$FILE" ]; then
+            echo "✅ Packed tarball: $FILE"
+            echo "file=$FILE" >> "$GITHUB_OUTPUT"
+            echo "ASSET=$FILE" >> "$GITHUB_ENV"
+            echo "has_asset=true" >> "$GITHUB_OUTPUT"
           else
-          mv -f -- "$SRC" "$DEST"
+            echo "⚠️ No .tgz produced; proceeding without an attached artifact."
+            echo "file=" >> "$GITHUB_OUTPUT"
+            echo "ASSET=" >> "$GITHUB_ENV"
+            echo "has_asset=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "ASSET=$DEST" >> $GITHUB_ENV
 
+      # If we have a .tgz, attach it to the release
       - name: "🏷️ Create GitHub Release (attach .tgz)"
+        if: steps.pack.outputs.has_asset == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.ASSET }}
           token: ${{ github.token }}
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.ver) }}
+          # If a tag was pushed, use it; otherwise fall back to a name
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.0' }}
           target_commitish: ${{ github.sha }}
-          name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.ver) }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Release' }}
+          generate_release_notes: true
+
+      # If we do NOT have a .tgz, still create a release (source-only links)
+      - name: "🏷️ Create GitHub Release (source-only)"
+        if: steps.pack.outputs.has_asset != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ github.token }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.0' }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Release' }}
           generate_release_notes: true

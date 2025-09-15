@@ -1,6 +1,6 @@
 {
-  "name": "rocky-npm",
-  "version": "1.0.0",
+  "name": [],
+  "version": "101",
   "description": "A small demo npm package",
   "main": "src/index.js",
   "bin": {
@@ -16,7 +16,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "lodash": "4.17.20",
+    "lodash": "4.17.21",
     "axios": "^1.7.0"
   },
   "keywords": ["demo", "cloudsmith", "npm"],
