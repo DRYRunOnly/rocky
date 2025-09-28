@@ -1,10 +1,17 @@
 # rocky-npm 🚀🍜
 
-**npm packages that rock (and sometimes oops)!**
+**Learn the basics of managing code and dependencies**
 
 ---
 
-## What is Package Management? 🍱
+## What is Artifact (or Package) Management? 🍱
+- You rarely write software from scratch.
+- You use pieces of code others have already written.
+- These reusaeable pieces are called **packages** or **artifacts**.
+
+Think of them as ingredients in cooking: 
+- Instead of growing your own tomatoes, you buy them.
+- In software, instead of writing everything, you install a package that already does the job.
 
 Picture this: You're at a global food festival. Every chef brings their own specialty dish (lasagna, sushi, tacos...), but you want to create the ultimate buffet. Instead of cooking everything from scratch, you grab the best dishes from each chef and assemble your feast. **Package management** is like this for code: it lets you grab ready-made "dishes" (packages/libraries) from a huge, shared kitchen, so you can build your app without reinventing the wheel.
 
