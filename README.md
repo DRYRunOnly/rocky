@@ -1,4 +1,4 @@
-# rocky-npm 🚀🍜
+# rocky 🚀🍜
 
 **Learn the basics of managing code and dependencies**
 
@@ -55,7 +55,7 @@ Imagine you want to make a burger, but you don't want to bake your own buns, gri
 ## What This Repo Contains 📁
 
 ```
-rocky-npm/
+rocky/
 ├── bin/             # CLI entry points (like 'rocky')
 ├── src/             # Source code for the CLI and package logic
 ├── package.json     # Metadata: name, version, dependencies, scripts
