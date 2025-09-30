@@ -27,6 +27,7 @@ A vulnerability is a **weakness** in software that attackers can exploit. Vulner
 - It could be a bug in the code.
 - It could be poor configuration.
 - It could be an outdated dependency that has a known flaw.
+
 When exploited, a vulnerability can allow someone (the attacker) to do bad things:
 - Steal data (like cryptowallet addresses, passwords, etc)
 - Run malicious code
