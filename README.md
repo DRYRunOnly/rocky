@@ -4,6 +4,10 @@
 
 ---
 
+## What is "npm"?
+**npm** stands for **Node Package Manager** and it is a tool developers use to download and share pieces of code (called packages). The programming language most used by web developers is called JavaScript, which used **node** to run code outside of a web browser.
+
+
 ## What is Artifact (or Package) Management? 🍱
 - You rarely write software from scratch.
 - You use pieces of code others have already written.
@@ -36,8 +40,8 @@ When exploited, a vulnerability can allow someone (the attacker) to do bad thing
 
 ## The Lifecycle of a Package 📦
 
-1. **Cooking:** You write code and bundle it as a package.
-2. **Publishing:** You upload it to a repository (like npmjs.com).
+1. **Cooking:** You write code and bundle it as a package (bundling just means putting all the files together).
+2. **Publishing:** You upload it to a repository (like npmjs.com) or to a software like Cloudsmith.
 3. **Installing:** Others install your package via a package manager (like `npm install`).
 4. **Using:** Your code runs in their project, making their lives easier.
 5. **Updating:** You (or others) publish improvements or fixes.
@@ -64,7 +68,7 @@ Think: **npm** is your waiter, **Cloudsmith** is the restaurant kitchen.
 
 Imagine you want to make a burger, but you don't want to bake your own buns, grind your own beef, or grow your own lettuce. You use a **package manager** to fetch the best buns, patties, and toppings from the "repository supermarket." If you want to share your secret sauce, you package it up and upload it so others can install it too!
 
-## What This Repo Contains 📁
+## What This 'Project' Contains 📁
 
 ```
 rocky/
@@ -79,6 +83,7 @@ rocky/
 ├── LICENSE              # License file (MIT in this case)
 ```
 
+As well as the source code (the stuff that developers write), before that software can be used in an application, there are lots of other information that is required - things like the metadata, a list (or "tree") of dependencies (i.e, the list of other people code that your code relies on to work), and whether you are releasing the use of your code under a licence.
 
 ## package.json Explained 📝
 
