@@ -101,7 +101,7 @@ The `package.json` file is the heart of any npm package. Here's what the main fi
 - **`author`**: Package author.
 - **`license`**: License type (e.g., MIT).
 
-| Pay attention to what is incide a package.json file. This is going to come in handy for Day Two!! |
+| Pay attention to what is inside a package.json file...it will be helpful for Day Two!! |
 |-------------------------|
 
 ## How It Works ⚙️
