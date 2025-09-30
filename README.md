@@ -22,6 +22,17 @@ Picture this: You're at a global food festival. Every chef brings their own spec
 - **Updates & Security:** Fix bugs and patch vulnerabilities by upgrading packages.
 - **Collaboration:** Share your own recipes with the world!
 
+## What is a vulnerability?
+A vulnerability is a **weakness** in software that attackers can exploit. Vulnerabilities aren't always malicious, but they do pose a risk to companies.
+- It could be a bug in the code.
+- It could be poor configuration.
+- It could be an outdated dependency that has a known flaw.
+When exploited, a vulnerability can allow someone (the attacker) to do bad things:
+- Steal data (like cryptowallet addresses, passwords, etc)
+- Run malicious code
+- Break the software
+- Gain access to things they shouldn't have
+
 ## The Lifecycle of a Package 📦
 
 1. **Cooking:** You write code and bundle it as a package.
